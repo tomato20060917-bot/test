@@ -1,44 +1,55 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#000; color:#0f0; text-align:center; font-family:sans-serif; cursor:crosshair; overflow:hidden">
-<h1 id="score" style="font-size:50px">0</h1>
-<div id="target" style="width:100px; height:100px; background:#f0f; border-radius:50%; cursor:pointer; position:absolute; display:flex; align-items:center; justify-content:center; top:100px; left:calc(50% - 50px)">EAT ME</div>
+<head>
+<title>ULTRA BAKA CLICKER: THE SENTIENT SANDWICH</title>
+<style>
+body { background: #ff00ff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'Comic Sans MS', cursive; overflow: hidden; margin: 0; }
+#sandwich { width: 200px; height: 200px; cursor: crosshair; transition: transform 0.1s; border: 10px solid #000; background: #ffff00; display: flex; align-items: center; justify-content: center; font-size: 50px; user-select: none; position: relative; }
+#stats { font-size: 30px; color: white; -webkit-text-stroke: 2px black; text-align: center; }
+.shaker { animation: shake 0.1s infinite; }
+@keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -1px); } }
+</style>
+</head>
+<body>
+
+<div id="stats">SANDWICH HUNGER: 0<br>DON'T CLICK THE BREAD!</div>
+<div id="sandwich" onclick="clickSandwich()">🥪</div>
+
 <script>
-let s = 0, timer, t = document.getElementById('target');
+let score = 0;
+const s = document.getElementById('sandwich');
+const t = document.getElementById('stats');
 
 function getRandomColor() {
-    return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+    return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
 }
 
-function moveTarget() {
-    t.style.left = Math.random() * (window.innerWidth - 100) + 'px';
-    t.style.top = Math.random() * (window.innerHeight - 100) + 'px';
-}
-
-function startTimer() {
-    clearInterval(timer);
-    const speed = Math.max(100, 800 - (s * 20));
-    timer = setInterval(moveTarget, speed);
-}
-
-t.onclick = () => {
-    s++;
-    document.getElementById('score').innerText = s;
-    moveTarget();
-    t.style.backgroundColor = getRandomColor();
-    
-    if(s > 10) t.innerText = "TOO FAST!";
-    if(s > 20) { t.style.transform = "rotate(180deg)"; t.innerText = "WHY?"; }
-    if(s >= 30) { 
-        clearInterval(timer);
-        alert("YOU WON AT LIFE. GO OUTSIDE."); 
-        location.reload(); 
-    } else {
-        startTimer();
+const intervalId = setInterval(() => {
+    if (score > 5) {
+        // Use transform instead of margins to prevent layout thrashing with flexbox
+        const x = (Math.random() * 200 - 100);
+        const y = (Math.random() * 200 - 100);
+        s.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random() * 360}deg)`;
     }
-};
+}, 500);
 
-startTimer();
+function clickSandwich() {
+    score++;
+    t.innerHTML = "SANDWICH HUNGER: " + score + "<br>WHY ARE YOU DOING THIS?!";
+    s.style.backgroundColor = getRandomColor();
+    
+    if (score > 10) {
+        document.body.classList.add('shaker');
+        t.innerHTML = "THE SANDWICH IS ANGRY!!";
+    }
+    
+    if (score > 20) {
+        s.innerText = "🍞";
+        clearInterval(intervalId); // Clear interval to prevent race conditions
+        alert("YOU KILLED THE SANDWICH! YOU MONSTER!");
+        location.reload();
+    }
+}
 </script>
 </body>
 </html>
