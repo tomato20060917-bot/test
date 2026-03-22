@@ -1,55 +1,87 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>ULTRA BAKA CLICKER: THE SENTIENT SANDWICH</title>
+<meta charset="UTF-8">
+<title>ULTRA BAKA RAGE: THE EGG OF DESTINY</title>
 <style>
-body { background: #ff00ff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'Comic Sans MS', cursive; overflow: hidden; margin: 0; }
-#sandwich { width: 200px; height: 200px; cursor: crosshair; transition: transform 0.1s; border: 10px solid #000; background: #ffff00; display: flex; align-items: center; justify-content: center; font-size: 50px; user-select: none; position: relative; }
-#stats { font-size: 30px; color: white; -webkit-text-stroke: 2px black; text-align: center; }
-.shaker { animation: shake 0.1s infinite; }
-@keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -1px); } }
+body, html { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; }
+#canvas-container { width: 100vw; height: 100vh; cursor: crosshair; }
+#ui { position: absolute; top: 20px; left: 20px; color: #ff00ff; font-size: 40px; pointer-events: none; text-shadow: 0 0 10px #fff; z-index: 100; }
+.shake { animation: shake 0.2s infinite; }
+@keyframes shake { 0% { transform: translate(1px, 1px); } 100% { transform: translate(-1px, -2px); } }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
-
-<div id="stats">SANDWICH HUNGER: 0<br>DON'T CLICK THE BREAD!</div>
-<div id="sandwich" onclick="clickSandwich()">🥪</div>
-
+<div id="ui">SCORE: <span id="score">0</span></div>
+<div id="canvas-container"></div>
 <script>
-let score = 0;
-const s = document.getElementById('sandwich');
-const t = document.getElementById('stats');
+document.addEventListener('DOMContentLoaded', () => {
+    const { Engine, Render, Runner, Bodies, Composite, Body, Events } = Matter;
+    const container = document.getElementById('canvas-container');
+    const scoreEl = document.getElementById('score');
+    let score = 0;
 
-function getRandomColor() {
-    return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-}
+    const engine = Engine.create();
+    const render = Render.create({
+        element: container,
+        engine: engine,
+        options: { 
+            width: window.innerWidth, 
+            height: window.innerHeight, 
+            wireframes: false, 
+            background: '#111' 
+        }
+    });
 
-const intervalId = setInterval(() => {
-    if (score > 5) {
-        // Use transform instead of margins to prevent layout thrashing with flexbox
-        const x = (Math.random() * 200 - 100);
-        const y = (Math.random() * 200 - 100);
-        s.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random() * 360}deg)`;
-    }
-}, 500);
+    const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 50, window.innerWidth, 100, { isStatic: true });
+    Composite.add(engine.world, [ground]);
 
-function clickSandwich() {
-    score++;
-    t.innerHTML = "SANDWICH HUNGER: " + score + "<br>WHY ARE YOU DOING THIS?!";
-    s.style.backgroundColor = getRandomColor();
-    
-    if (score > 10) {
-        document.body.classList.add('shaker');
-        t.innerHTML = "THE SANDWICH IS ANGRY!!";
+    function createBaka() {
+        const baka = Bodies.circle(Math.random() * window.innerWidth, -50, 40, {
+            restitution: 0.8,
+            render: { sprite: { texture: 'https://cdn-icons-png.flaticon.com/512/3069/3069172.png', xScale: 0.15, yScale: 0.15 } }
+        });
+        Composite.add(engine.world, baka);
     }
-    
-    if (score > 20) {
-        s.innerText = "🍞";
-        clearInterval(intervalId); // Clear interval to prevent race conditions
-        alert("YOU KILLED THE SANDWICH! YOU MONSTER!");
-        location.reload();
-    }
-}
+
+    document.addEventListener('click', (e) => {
+        const explosion = Bodies.circle(e.clientX, e.clientY, 30, { restitution: 2, render: { fillStyle: '#ffff00' } });
+        Composite.add(engine.world, explosion);
+        Body.applyForce(explosion, explosion.position, { x: (Math.random() - 0.5) * 0.2, y: -0.2 });
+        
+        score += 10;
+        scoreEl.innerText = score;
+        container.classList.add('shake');
+        setTimeout(() => container.classList.remove('shake'), 100);
+        
+        setTimeout(() => Composite.remove(engine.world, explosion), 2000);
+    });
+
+    Events.on(engine, 'afterUpdate', () => {
+        const bodies = Composite.allBodies(engine.world);
+        for (let i = 0; i < bodies.length; i++) {
+            const body = bodies[i];
+            if (body !== ground && body.position.y > window.innerHeight + 100) {
+                Composite.remove(engine.world, body);
+                if (body.circleRadius === 40) { // Check if it's a baka
+                    score = Math.max(0, score - 50);
+                    scoreEl.innerText = score;
+                }
+            }
+        }
+    });
+
+    setInterval(createBaka, 800);
+    Render.run(render);
+    Runner.run(Runner.create(), engine);
+
+    window.addEventListener('resize', () => {
+        render.canvas.width = window.innerWidth;
+        render.canvas.height = window.innerHeight;
+        Body.setPosition(ground, { x: window.innerWidth / 2, y: window.innerHeight + 50 });
+    });
+});
 </script>
 </body>
 </html>
