@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>どこだ？クリック</title>
+<style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #222;
+    overflow: hidden; /* ボタンが画面外に出てもスクロールさせない */
+    font-family: 'Arial', sans-serif;
+    color: #eee;
+    cursor: url("data:image/svg+xml;charset=utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='orange' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v6h-2zm0 8h2v2h-2z'/></svg>") 12 12, pointer;
+    transition: transform 0.1s ease-out; /* 画面揺れ用 */
+}
+#gameArea {
+    position: relative;
+    width: 600px;
+    height: 400px;
+    background-color: #333;
+    border: 5px dashed #f00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+    overflow: hidden; /* ターゲットが範囲外に移動しても見えないようにする */
+}
+#target {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    background-color: #0f0;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+    cursor: url("data:image/svg+xml;charset=utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='red' d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v-2h-2v2zm0-4h2V7h-2v6z'/></svg>") 12 12, crosshair;
+    transition: all 0.05s ease-out; /* 高速で動かす */
+    text-align: center;
+    user-select: none;
+    line-height: 1.2;
+}
+#message {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff0;
+    text-shadow: 0 0 10px #ff0, 0 0 20px #ff0;
+    z-index: 10;
+}
+</style>
+</head>
+<body>
+<div id="gameArea">
+    <div id="message">スコア: 0</div>
+    <div id="target">どこだ？</div>
+</div>
+
+<script>
+const target = document.getElementById('target');
+const message = document.getElementById('message');
+const gameArea = document.getElementById('gameArea');
+let score = 0;
+const gameAreaExtension = 0.8; // ターゲットが画面外に大きくはみ出す割合
+
+function moveTarget() {
+    const gameWidth = gameArea.clientWidth;
+    const gameHeight = gameArea.clientHeight;
+
+    // 画面外にも大きくはみ出るようにランダムな位置を設定
+    let newX = Math.floor(Math.random() * (gameWidth * (1 + 2 * gameAreaExtension))) - (gameWidth * gameAreaExtension);
+    let newY = Math.floor(Math.random() * (gameHeight * (1 + 2 * gameAreaExtension))) - (gameHeight * gameAreaExtension);
+
+    // サイズをランダムに変化 (超小さくも超大きくも、見えないレベルも)
+    let newSize = Math.floor(Math.random() * 120) + 10; // 10px - 130px
+
+    // 色をランダムに変化 (背景色と同化しやすい色も)
+    let r = Math.floor(Math.random() * 255);
+    let g = Math.floor(Math.random() * 255);
+    let b = Math.floor(Math.random() * 255);
+    let bgColor = `rgb(${r},${g},${b})`;
+
+    // 透明度をランダムに変化 (0=完全透明も)
+    let opacity = Math.random();
+
+    // 回転もさせる
+    let rotation = Math.floor(Math.random() * 360);
+
+    target.style.left = newX + 'px';
+    target.style.top = newY + 'px';
+    target.style.width = newSize + 'px';
+    target.style.height = newSize + 'px';
+    target.style.backgroundColor = bgColor;
+    target.style.opacity = opacity;
+    target.style.transform = `rotate(${rotation}deg)`;
+
+    // テキストも変える、または空にする
+    const texts = ["HAHAHA!", "どこだ？", "見つけろ！", "ワロタ", "残念！", "無理だろw", "", "？", "ココ！", ""];
+    target.textContent = texts[Math.floor(Math.random() * texts.length)];
+    // 透明度が低い時は文字も透明になる可能性
+    target.style.color = opacity < 0.3 ? (Math.random() > 0.5 ? 'transparent' : '#fff') : '#000';
+}
+
+target.onclick = function() {
+    score++;
+    const comments = ["やるじゃん", "奇跡！", "バカだろw", "まだいける？", "うわっ", "押せた！すごい！", "ふーん", "うるせえ！", "え、今押した？", "まぐれ"];
+    message.textContent = `スコア: ${score} - ${comments[Math.floor(Math.random() * comments.length)]}`;
+    
+    // クリック時に画面全体を少し揺らす
+    document.body.style.transform = `rotate(${Math.random() * 2 - 1}deg)`;
+    setTimeout(() => {
+        document.body.style.transform = '';
+    }, 100);
+
+    moveTarget();
+};
+
+// 初期位置設定
+moveTarget();
+</script>
+</body>
+</html>
