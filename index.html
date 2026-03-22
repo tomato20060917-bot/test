@@ -1,88 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baka Hunter Pro</title>
-    <style>
-        :root { --bg: #0f172a; --text: #f8fafc; --accent: #38bdf8; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none; }
-        #game-area { position: relative; width: 100vw; height: 100vh; cursor: crosshair; }
-        #target { position: absolute; font-size: 60px; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.3s; cursor: pointer; z-index: 10; }
-        #target:hover { filter: drop-shadow(0 0 10px var(--accent)); transform: scale(1.1); }
-        .ui { position: absolute; top: 20px; text-align: center; pointer-events: none; }
-        #score { font-size: 2rem; font-weight: bold; }
-        #msg { font-size: 1.2rem; opacity: 0.8; }
-        .reset-btn { pointer-events: auto; background: var(--accent); border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: none; }
-    </style>
-</head>
-<body>
+<html>
+<body style="background:#000; color:#0f0; text-align:center; font-family:impact; overflow:hidden; margin:0; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 
-<div class="ui">
-    <h1 id="title">Catch the Baka!</h1>
-    <div id="score">Score: 0</div>
-    <div id="msg">Keep your eyes sharp.</div>
-    <button id="reset" class="reset-btn" onclick="game.init()">Play Again</button>
+<div id="overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:100;">
+    <button onclick="startGame()" style="padding:20px 40px; font-size:3vw; cursor:pointer; font-family:impact; background:#0f0; border:none;">START GAME</button>
 </div>
 
-<div id="game-area">
-    <div id="target">🤡</div>
-</div>
+<h1 id="s" style="font-size:10vw; margin:0;">0</h1>
+<div id="b" style="cursor:pointer; font-size:5vw; display:none;" onclick="c(event)">CLICK THE TOAST</div>
+<audio id="m" src="https://www.myinstants.com/media/sounds/bruh.mp3"></audio>
 
 <script>
-const game = {
-    score: 0,
-    maxScore: 10,
-    icons: ['💩', '🤡', '👺', '👀', '💀'],
-    el: document.getElementById('target'),
-    scoreEl: document.getElementById('score'),
+let score = 0;
+const s = document.getElementById('s');
+const b = document.getElementById('b');
+const audio = document.getElementById('m');
+const overlay = document.getElementById('overlay');
+
+function startGame() {
+    overlay.style.display = 'none';
+    b.style.display = 'block';
+    audio.play();
+}
+
+function c(event) {
+    event.stopPropagation();
+    audio.currentTime = 0;
+    audio.play();
     
-    init() {
-        this.score = 0;
-        this.scoreEl.innerText = 'Score: 0';
-        document.getElementById('title').innerText = "Catch the Baka!";
-        document.getElementById('reset').style.display = 'none';
-        this.el.style.display = 'block';
-        this.moveTarget();
-    },
-
-    moveTarget() {
-        const padding = 100;
-        const x = Math.random() * (window.innerWidth - padding * 2) + padding/2;
-        const y = Math.random() * (window.innerHeight - padding * 2) + padding/2;
-        this.el.style.left = `${x}px`;
-        this.el.style.top = `${y}px`;
-        
-        if (this.score > 5) {
-            this.el.innerText = this.icons[Math.floor(Math.random() * this.icons.length)];
-            this.el.style.fontSize = (Math.random() * 60 + 40) + 'px';
-        }
-    },
-
-    handleHit() {
-        this.score++;
-        this.scoreEl.innerText = `Score: ${this.score}`;
-        
-        if (this.score >= this.maxScore) {
-            this.el.style.display = 'none';
-            document.getElementById('title').innerText = "VICTORY ACHIEVED";
-            document.getElementById('reset').style.display = 'block';
-        } else {
-            this.moveTarget();
-        }
+    score++;
+    s.innerText = score;
+    b.style.position = 'absolute';
+    b.style.left = Math.random() * 80 + 'vw';
+    b.style.top = Math.random() * 80 + 'vh';
+    b.style.transform = `rotate(${Math.random()*360}deg)`;
+    
+    if(score > 5) {
+        const randomColor = Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        document.body.style.background = '#' + randomColor;
     }
-};
-
-game.el.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    game.handleHit();
-});
-
-document.body.addEventListener('mousedown', () => {
-    // Optional: Add penalty logic here for clicking outside the target
-});
-
-game.init();
+    
+    if(score === 10) { 
+        b.innerText = "TOO FAST!"; 
+        b.style.fontSize = "10vw"; 
+    }
+    
+    if(score === 15) { 
+        alert("YOU ARE A TOAST MASTER. LEAVE NOW."); 
+        location.reload(); 
+    }
+}
 </script>
 </body>
 </html>
